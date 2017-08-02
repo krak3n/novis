@@ -14,7 +14,7 @@ func Add(name, path string) *Branch {
 	return novis.Add(name, path)
 }
 
-// Rev reversees the dotted name lookup path and returns the
+// Rev reverses the dotted name lookup path and returns the
 // url path for the name, if param values are provided they will
 // be used in place of any params in the path
 func Rev(name string, values ...string) string {
@@ -58,7 +58,7 @@ func (novis *Novis) Add(name, path string) *Branch {
 	return novis.Root.Add(name, path)
 }
 
-// Rev reversees the dotted name lookup path and returns the
+// Rev reverses the dotted name lookup path and returns the
 // url path for the name, if param values are provided they will
 // be used in place of any params in the path
 func (novis *Novis) Rev(name string, values ...string) string {
