@@ -3,9 +3,11 @@ language: go
 go:
   - 1.7.x
   - 1.8.x
-  - master
-
-go_import_path: github.com/thisissoon/novis
 
 install:
   - go get github.com/stretchr/testify/assert
+  - go get github.com/mattn/goveralls
+
+script:
+  - go test -v -coverprofile=cover.out -covermode=count ./...
+  - $GOPATH/bin/goveralls -coverprofile=cover.out -service=travis-ci -repotoken $COVERALLS_TOKEN
