@@ -37,15 +37,10 @@ type Novis struct {
 // For example "foo.bar" would return the "bar" branch if
 // the branch exists
 func (novis *Novis) GetBranch(name string) *Branch {
-	var ok bool
+	var branch *Branch
 	route := strings.Split(name, ".")
 	last := route[len(route)-1]
-	branch := novis.Root
-	for i := 0; i < len(route); i++ {
-		branch, ok = branch.Get(route[i])
-		if !ok {
-			break
-		}
+	for branch = range novis.traverse(name) {
 		if branch.name == last {
 			break
 		}
@@ -62,18 +57,9 @@ func (novis *Novis) Add(name, path string) *Branch {
 // url path for the name, if param values are provided they will
 // be used in place of any params in the path
 func (novis *Novis) Rev(name string, values ...string) string {
-	if novis.Root == nil {
-		return ""
-	}
 	parts := []string{}
 	params := []string{}
-	route := strings.Split(name, ".")
-	branch := novis.Root // Starting Node
-	for _, r := range route {
-		branch, _ = branch.Get(r)
-		if branch == nil {
-			break
-		}
+	for branch := range novis.traverse(name) {
 		parts = append(parts, branch.path)
 		params = append(params, branch.params...)
 	}
@@ -82,6 +68,29 @@ func (novis *Novis) Rev(name string, values ...string) string {
 		p = strings.Replace(p, params[i], values[i], -1)
 	}
 	return p
+}
+
+// traverse follows the lookup path to the end placing branches
+// ontp a receive only channel callers can range over
+func (novis *Novis) traverse(lookup string) <-chan *Branch {
+	if novis.Root == nil {
+		return nil
+	}
+	ch := make(chan *Branch)
+	ok := false
+	branch := novis.Root
+	route := strings.Split(lookup, ".")
+	go func() {
+		defer close(ch)
+		for _, name := range route {
+			branch, ok = branch.Get(name)
+			if !ok {
+				break
+			}
+			ch <- branch
+		}
+	}()
+	return ch
 }
 
 // New constructs a new Novis innstance
