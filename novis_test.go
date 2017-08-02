@@ -6,6 +6,71 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNovis_GetBranch(t *testing.T) {
+	type tc struct {
+		tname  string
+		novis  *Novis
+		name   string
+		branch *Branch
+	}
+	tt := []tc{
+		{
+			tname:  "branch does not exist",
+			novis:  New(),
+			name:   "foo",
+			branch: nil,
+		},
+		{
+			tname: "shallpw",
+			novis: &Novis{
+				Root: &Branch{
+					branches: map[string]*Branch{
+						"foo": &Branch{
+							name: "foo",
+							path: "/foo",
+						},
+					},
+				},
+			},
+			name: "foo",
+			branch: &Branch{
+				name: "foo",
+				path: "/foo",
+			},
+		},
+		{
+			tname: "deep",
+			novis: &Novis{
+				Root: &Branch{
+					branches: map[string]*Branch{
+						"foo": &Branch{
+							name: "foo",
+							path: "/foo",
+							branches: map[string]*Branch{
+								"bar": &Branch{
+									name: "bar",
+									path: "/bar",
+								},
+							},
+						},
+					},
+				},
+			},
+			name: "foo.bar",
+			branch: &Branch{
+				name: "bar",
+				path: "/bar",
+			},
+		},
+	}
+	for _, tc := range tt {
+		t.Run(tc.tname, func(t *testing.T) {
+			branch := tc.novis.GetBranch(tc.name)
+			assert.Equal(t, tc.branch, branch)
+		})
+	}
+}
+
 func TestNovis_Rev(t *testing.T) {
 	type tc struct {
 		tname  string
@@ -164,6 +229,65 @@ func TestNovis_Rev(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.tname, func(t *testing.T) {
 			path := tc.novis.Rev(tc.name, tc.values...)
+			assert.Equal(t, tc.path, path)
+		})
+	}
+}
+
+func TestBranch_Rel(t *testing.T) {
+	type tc struct {
+		tname  string
+		branch *Branch
+		path   string
+	}
+	tt := []tc{
+		{
+			tname: "returns relative path",
+			branch: &Branch{
+				path: "/foo",
+			},
+			path: "/foo",
+		},
+	}
+	for _, tc := range tt {
+		t.Run(tc.tname, func(t *testing.T) {
+			path := tc.branch.Rel()
+			assert.Equal(t, tc.path, path)
+		})
+	}
+}
+
+func TestBranch_Path(t *testing.T) {
+	type tc struct {
+		tname  string
+		branch *Branch
+		path   string
+	}
+	tt := []tc{
+		{
+			tname: "shallow",
+			branch: &Branch{
+				path: "/foo",
+			},
+			path: "/foo",
+		},
+		{
+			tname: "deep",
+			branch: &Branch{
+				path: "/foo",
+				parent: &Branch{
+					path: "/bar",
+					parent: &Branch{
+						path: "/baz",
+					},
+				},
+			},
+			path: "/baz/bar/foo",
+		},
+	}
+	for _, tc := range tt {
+		t.Run(tc.tname, func(t *testing.T) {
+			path := tc.branch.Path()
 			assert.Equal(t, tc.path, path)
 		})
 	}

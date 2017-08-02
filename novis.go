@@ -73,9 +73,6 @@ func (novis *Novis) Rev(name string, values ...string) string {
 // traverse follows the lookup path to the end placing branches
 // ontp a receive only channel callers can range over
 func (novis *Novis) traverse(lookup string) <-chan *Branch {
-	if novis.Root == nil {
-		return nil
-	}
 	ch := make(chan *Branch)
 	ok := false
 	branch := novis.Root
@@ -83,6 +80,9 @@ func (novis *Novis) traverse(lookup string) <-chan *Branch {
 	go func() {
 		defer close(ch)
 		for _, name := range route {
+			if branch == nil {
+				break
+			}
 			branch, ok = branch.Get(name)
 			if !ok {
 				break
@@ -120,8 +120,9 @@ func (branch *Branch) Rel() string {
 // Returns the full branch path from root to tip
 func (branch *Branch) Path() string {
 	parts := []string{branch.path}
+	b := branch
 	for {
-		b := branch.parent
+		b = b.parent
 		if b == nil {
 			break
 		}
