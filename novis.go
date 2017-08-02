@@ -62,14 +62,16 @@ func (novis *Novis) Add(name, path string) *Branch {
 // url path for the name, if param values are provided they will
 // be used in place of any params in the path
 func (novis *Novis) Rev(name string, values ...string) string {
-	var ok bool
-	var parts []string
-	var params []string
+	if novis.Root == nil {
+		return ""
+	}
+	parts := []string{}
+	params := []string{}
 	route := strings.Split(name, ".")
-	branch := novis.Root              // Starting Node
-	for i := 0; i < len(route); i++ { // Traverse the branches
-		branch, ok = branch.Get(route[i])
-		if !ok {
+	branch := novis.Root // Starting Node
+	for _, r := range route {
+		branch, _ = branch.Get(r)
+		if branch == nil {
 			break
 		}
 		parts = append(parts, branch.path)
