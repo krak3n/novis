@@ -10,8 +10,8 @@ import (
 var novis = New()
 
 // Add adds a new branch to the root returning the new branch
-func Add(name, path string) *Branch {
-	return novis.Add(name, path)
+func Add(name, path string, params ...string) *Branch {
+	return novis.Add(name, path, params...)
 }
 
 // Rev reverses the dotted name lookup path and returns the
@@ -49,8 +49,8 @@ func (novis *Novis) GetBranch(name string) *Branch {
 }
 
 // Add adds a new branch to the root returning the new branch
-func (novis *Novis) Add(name, path string) *Branch {
-	return novis.Root.Add(name, path)
+func (novis *Novis) Add(name, path string, params ...string) *Branch {
+	return novis.Root.Add(name, path, params...)
 }
 
 // Rev reverses the dotted name lookup path and returns the
