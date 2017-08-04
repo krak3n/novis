@@ -27,6 +27,14 @@ func ExampleBranch_Rel() {
 	// Output: /bar
 }
 
+func ExampleBranch_Add() {
+	novis.Add("foo", "/foo")
+	novis.Add("foo.bar", "/bar")
+	novis.Add("foo.bar.baz", "/baz")
+	fmt.Println(novis.Rev("foo.bar.baz"))
+	// Output: /foo/bar/baz
+}
+
 func ExampleBranch_Path() {
 	foo := novis.Add("foo", "/foo")
 	bar := foo.Add("bar", "/bar")

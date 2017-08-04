@@ -73,24 +73,7 @@ func (novis *Novis) Rev(name string, values ...string) string {
 // traverse follows the lookup path to the end placing branches
 // ontp a receive only channel callers can range over
 func (novis *Novis) traverse(lookup string) <-chan *Branch {
-	ch := make(chan *Branch)
-	ok := false
-	branch := novis.Root
-	route := strings.Split(lookup, ".")
-	go func() {
-		defer close(ch)
-		for _, name := range route {
-			if branch == nil {
-				break
-			}
-			branch, ok = branch.Get(name)
-			if !ok {
-				break
-			}
-			ch <- branch
-		}
-	}()
-	return ch
+	return novis.Root.traverse(lookup)
 }
 
 // New constructs a new Novis innstance
@@ -110,6 +93,28 @@ type Branch struct {
 	params   []string
 	branches map[string]*Branch
 	parent   *Branch
+}
+
+// traverse follows the lookup path to the end placing branches
+// ontp a receive only channel callers can range over
+func (branch *Branch) traverse(lookup string) <-chan *Branch {
+	ch := make(chan *Branch)
+	ok := false
+	route := strings.Split(lookup, ".")
+	go func() {
+		defer close(ch)
+		for _, name := range route {
+			if branch == nil {
+				break
+			}
+			branch, ok = branch.Get(name)
+			if !ok {
+				break
+			}
+			ch <- branch
+		}
+	}()
+	return ch
 }
 
 // Rel returns the branch relative path
@@ -138,12 +143,20 @@ func (branch *Branch) Get(name string) (b *Branch, ok bool) {
 }
 
 // Add adds a new child branch to this branch
-func (branch *Branch) Add(name, path string, params ...string) *Branch {
-	b := NewBranch(name, path, branch, params...)
-	branch.lock.Lock()
-	branch.branches[name] = b
-	branch.lock.Unlock()
-	return b
+func (branch *Branch) Add(route, path string, params ...string) *Branch {
+	parent := branch
+	parts := strings.Split(route, ".")
+	name := parts[len(parts)-1]
+	if len(parts) > 1 {
+		for b := range branch.traverse(route) {
+			parent = b
+		}
+	}
+	nb := NewBranch(name, path, parent, params...)
+	parent.lock.Lock()
+	parent.branches[name] = nb
+	parent.lock.Unlock()
+	return nb
 }
 
 // NewBranch construcs a new Branch instance
