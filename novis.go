@@ -25,7 +25,14 @@ func Rev(name string, values ...string) string {
 // For example "foo.bar" would return the "bar" branch if
 // the branch exists
 func GetBranch(name string) *Branch {
-	return novis.GetBranch(name)
+	return novis.Get(name)
+}
+
+// GetBranch returns a branch by look up name
+// For example "foo.bar" would return the "bar" branch if
+// the branch exists
+func Get(name string) *Branch {
+	return novis.Get(name)
 }
 
 // Novis is the root all branches grow from
@@ -37,6 +44,13 @@ type Novis struct {
 // For example "foo.bar" would return the "bar" branch if
 // the branch exists
 func (novis *Novis) GetBranch(name string) *Branch {
+	return novis.Get(name)
+}
+
+// GetBranch returns a branch by look up name
+// For example "foo.bar" would return the "bar" branch if
+// the branch exists
+func (novis *Novis) Get(name string) *Branch {
 	var branch *Branch
 	route := strings.Split(name, ".")
 	last := route[len(route)-1]
