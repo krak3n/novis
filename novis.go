@@ -3,7 +3,6 @@ package novis
 import (
 	"path"
 	"strings"
-	"sync"
 )
 
 // Used for singleton implementations
@@ -101,7 +100,6 @@ func New() *Novis {
 
 // Branch is a single url path node
 type Branch struct {
-	lock     sync.Mutex
 	name     string
 	path     string
 	params   []string
@@ -167,9 +165,7 @@ func (branch *Branch) Add(route, path string, params ...string) *Branch {
 		}
 	}
 	nb := NewBranch(name, path, parent, params...)
-	parent.lock.Lock()
 	parent.branches[name] = nb
-	parent.lock.Unlock()
 	return nb
 }
 
